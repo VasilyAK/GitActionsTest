@@ -16,4 +16,4 @@ jobs:
       - name: Verify run id
         run : echo Run Id $GITHUB_RUN_ID 
       - name: Output the branch name
-        run: echo $(echo $GITHUB_REF | cut -d'/' -f 3)
+        run: echo $GITHUB_REF
