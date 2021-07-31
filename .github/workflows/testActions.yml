@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
-      
-      - name: Get Git Version
-        uses: docker://gittools/gitversion:5.0.2-beta1-34-linux-debian-9-netcoreapp2.1
-        with:
-          args: /github/workspace /nofetch /exec /bin/sh /execargs "-c \"echo $GitVersion_MajorMinorPatch > /github/workspace/version.txt\""
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Verify run id
+        run : echo Run Id $GITHUB_RUN_ID 
+      - name: Output the branch name
+        run: echo $(echo $GITHUB_REF | cut -d'/' -f 3)
