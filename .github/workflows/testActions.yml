@@ -37,4 +37,5 @@ jobs:
       run: dotnet build "NuGetTestPackage/NuGetTestPackage.sln" --no-restore
 
     - name: Test
-      run: dotnet test "FlowTests/FlowTests.sln" --no-build --verbosity normal
+      if: ${{ $BRANCH_NAME == 'release' }}
+      run: dotnet test "NuGetTestPackage/NuGetTestPackage.sln" --no-build --verbosity normal
