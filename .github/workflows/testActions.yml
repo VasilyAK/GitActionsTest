@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 env:
   BRANCH_NAME: noBranch
-  NU_GET_PACKAGE_ID: NuGetTestPackage_VasilyAK
+  NUGET_PACKAGE_ID: NuGetTestPackage_VasilyAK
   RELEASE_VERSION: '0.0.0'
 
 jobs:
@@ -17,7 +17,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Update release version
-      run: .\Utils\DefineBranch.ps1 -NuGetPackageId ${NU_GET_PACKAGE_ID}
+      run: .\Utils\DefineBranch.ps1 -NuGetPackageId env.NUGET_PACKAGE_ID
       shell: powershell
 
     - name: Setup .NET
@@ -39,3 +39,16 @@ jobs:
     - name: Test
       if: ${{ $BRANCH_NAME == 'release' }}
       run: dotnet test "NuGetTestPackage/NuGetTestPackage.sln" --no-build --verbosity normal
+
+  Push_NuGet_Package:
+    name: Push NuGet package
+    needs: Build_Flow
+    if: ${{ $BRANCH_NAME == 'release' && $RELEASE_VERSION != '0.0.0'}}
+    runs-on: windows-latest
+    - name: Pack
+      run: dotnet pack --configuration Release /p:Version=${RELEASE_VERSION} --no-build --output 
+
+    - name: Push
+      run: dotnet nuget push NuGet.Workflow.${RELEASE_VERSION}.nupkg --source https://www.nuget.org/ --api-key ${NU_GET_ENV}
+      env:
+        NU_GET_ENV: ${{ secrets.TEST_PACKAGE_API_KEY }}
