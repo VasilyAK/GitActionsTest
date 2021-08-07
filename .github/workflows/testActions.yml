@@ -39,8 +39,7 @@ jobs:
     - name: Test
       if: ${{ env.BRANCH_NAME == 'release' }}
       run: dotnet test "NuGetTestPackage/NuGetTestPackage.sln" --no-build --verbosity normal
-    
-    steps:
+      
     - name: Pack      
       if: ${{ env.BRANCH_NAME == 'release' && env.RELEASE_VERSION != '0.0.0' }}
       run: dotnet pack --configuration Release /p:Version=${RELEASE_VERSION} --no-build --output 
