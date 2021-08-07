@@ -37,7 +37,7 @@ jobs:
       run: dotnet build "NuGetTestPackage/NuGetTestPackage.sln" --no-restore
 
     - name: Test
-      if: ${{ $BRANCH_NAME == 'release' }}
+      if: ${{ env.BRANCH_NAME == 'release' }}
       run: dotnet test "NuGetTestPackage/NuGetTestPackage.sln" --no-build --verbosity normal
 
   Push_NuGet_Package:
