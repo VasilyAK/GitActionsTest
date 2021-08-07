@@ -43,7 +43,7 @@ jobs:
   Push_NuGet_Package:
     name: Push NuGet package
     needs: Build_Flow
-    if: env.BRANCH_NAME == 'release' && env.RELEASE_VERSION != '0.0.0'
+    if: BRANCH_NAME == 'release' && RELEASE_VERSION != '0.0.0'
     runs-on: windows-latest
     
     steps:
