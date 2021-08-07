@@ -1,8 +1,24 @@
 ﻿([string] $NuGetPackageId)
 
 [string] $BranchHead = $Env:GITHUB_REF
+[string] $MainBranch = "main"
 [string] $ReleaseBranch = "release"
 [string] $NewReleasePostfix = "-new"
+
+function Get-Git-BranchDir
+{
+    param ([string] $GitBranchHead)
+    
+    [string] $GitBranchFullName = $GitBranchHead.Replace("refs/heads/", "").Trim()
+    [string[]] $GitBranchDirs = $GitBranchFullName.Split("/")
+    if ($GitBranchDirs[0] == $MainBranch)
+    {
+        Return ""
+    }
+
+    Return $GitBranchDirs[0]
+}
+
 
 function Get-Git-BranchName
 {
@@ -10,22 +26,9 @@ function Get-Git-BranchName
     
     [string] $GitBranchFullName = $GitBranchHead.Replace("refs/heads/", "").Trim()
     [string[]] $GitBranchDirs = $GitBranchFullName.Split("/")
-    [string] $GitBranchName = $GitBranchDirs[0]
+    [string] $GitBranchName = $GitBranchDirs[($GitBranchDirs.Length - 1)]
 
     Return $GitBranchName
-}
-
-function Get-ReleaseVersion
-{
-    param ([string] $GitBranchName)
-
-    [string] $ReleaseVersion = "0.0"
-
-    if ($GitBranchName.StartsWith("$ReleaseBranch")) {
-        $ReleaseVersion = $GitBranchName.Replace("$ReleaseBranch-", "")
-    }
-
-    Return $ReleaseVersion
 }
 
 function Get-LatestNuGetPackageVersion
@@ -108,10 +111,11 @@ function Get-NewFixVersion
 }
 
 Write-Host "Start parse branch head: $BranchHead"
+[string] $BranchDir = Get-Git-BranchDir -GitBranchHead $BranchHead
 [string] $BranchName = Get-Git-BranchName -GitBranchHead $BranchHead
 
-if ($BranchName.StartsWith("$ReleaseBranch")) {
-    [string] $ReleaseVersion = Get-ReleaseVersion -GitBranchName $BranchName
+if ($BranchDir -eq "$ReleaseBranch") {
+    [string] $ReleaseVersion = $BranchName
     [string] $LatestNuGetPackageVersion = Get-LatestNuGetPackageVersion -PackageId $NuGetPackageId -ReleaseVersion $ReleaseVersion
     [int] $NewFixVersion = Get-NewFixVersion -LatestNuGetPackageVersion $LatestNuGetPackageVersion
     [string] $NewReleaseVersion = "$ReleaseVersion.$NewFixVersion"
