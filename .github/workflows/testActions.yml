@@ -17,9 +17,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Update release version
-      run: |
-        $NuGetPackageId = ${NUGET_PACKAGE_ID}
-        .\Utils\DefineBranch.ps1
+      run: .\Utils\DefineBranch.ps1
       shell: powershell
 
     - name: Setup .NET
