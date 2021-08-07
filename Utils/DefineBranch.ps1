@@ -47,6 +47,7 @@ function Get-LatestNuGetPackageVersion
 
         if ($Response.StatusCode -eq 200)
         {
+            Write-Host "A response was received from the 'nuget.org' site to request a package '$PackageId'"
             [PSCustomObject] $PesponseContent = $Response.Content | ConvertFrom-Json
             [string[]]$NuGetReleaseVersions = $PesponseContent.PSObject.Properties["versions"].Value
             $NuGetReleaseVersions = $NuGetReleaseVersions.Where({$_.StartsWith($ReleaseVersion)}) | Sort-Object -Descending
@@ -54,7 +55,7 @@ function Get-LatestNuGetPackageVersion
                $LatestNuGetReleaseVersion = $NuGetReleaseVersions[0]
             }
         } else {
-            Write-Host "No response received from the $URL."
+            Write-Host "No response received the 'nuget.org' site to request a package '$PackageId'"
             Write-Host "Status code: ${Response.StatusCode}"
         }
     }
@@ -63,11 +64,12 @@ function Get-LatestNuGetPackageVersion
         [string] $WebErrorMessage = $_.ToString()
         if ($WebErrorMessage.Contains("BlobNotFound"))
         {
+            Write-Warning "A response 'BlobNotFound' was received from the 'nuget.org' site to request a package '$PackageId'"
             $LatestNuGetReleaseVersion = "$ReleaseVersion.0$NewReleasePostfix"
         }
         else
         {
-            Write-Warning "Error while response receiving from the $URL."
+            Write-Warning "Error while response receiving from the 'nuget.org' site to request a package '$PackageId'"
             Write-Warning $WebErrorMessage
         }
     }

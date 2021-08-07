@@ -1,6 +1,6 @@
 name: Flow-CI
 
-on: [push, pull_request]
+on: push
 
 env:
   BRANCH_NAME: noBranch
