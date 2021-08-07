@@ -11,7 +11,7 @@ function Get-Git-BranchDir
     
     [string] $GitBranchFullName = $GitBranchHead.Replace("refs/heads/", "").Trim()
     [string[]] $GitBranchDirs = $GitBranchFullName.Split("/")
-    if ($GitBranchDirs[0] == $MainBranch)
+    if ($GitBranchDirs[0] -eq $MainBranch)
     {
         Return ""
     }
