@@ -1,4 +1,4 @@
-﻿([string] $NuGetPackageId)
+﻿#([string] $NuGetPackageId)
 
 [string] $BranchHead = $Env:GITHUB_REF
 [string] $MainBranch = "main"
