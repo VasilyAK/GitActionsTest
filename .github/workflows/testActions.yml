@@ -45,6 +45,8 @@ jobs:
     needs: Build_Flow
     if: ${{ $BRANCH_NAME == 'release' && $RELEASE_VERSION != '0.0.0'}}
     runs-on: windows-latest
+    
+    steps:
     - name: Pack
       run: dotnet pack --configuration Release /p:Version=${RELEASE_VERSION} --no-build --output 
 
