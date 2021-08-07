@@ -1,19 +1,40 @@
-name: CI
+name: Flow-CI
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+on: [push, pull_request]
+
+env:
+  BRANCH_NAME: noBranch
+  NU_GET_PACKAGE_ID: NuGetTestPackage_VasilyAK
+  RELEASE_VERSION: '0.0.0'
 
 jobs:
-  update-version:
-    runs-on: ubuntu-latest
+  Build_Flow:
+    name: Build Flow
+    runs-on: windows-latest 
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-      - name: Verify run id
-        run : echo Run Id $GITHUB_RUN_ID 
-      - name: Output the branch name
-        run: echo $GITHUB_REF
+    - name: Clone repo
+      uses: actions/checkout@v2
+
+    - name: Update release version
+      run: .\Utils\DefineBranch.ps1 -NuGetPackageId ${NU_GET_PACKAGE_ID}
+      shell: powershell
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.x
+
+    - name: Restore NuGet
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-version: '5.x'
+
+    - name: Restore dependencies
+      run: dotnet restore "NuGetTestPackage/NuGetTestPackage.sln"
+
+    - name: Build
+      run: dotnet build "NuGetTestPackage/NuGetTestPackage.sln" --no-restore
+
+    - name: Test
+      run: dotnet test "FlowTests/FlowTests.sln" --no-build --verbosity normal
