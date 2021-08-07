@@ -18,7 +18,7 @@ jobs:
 
     - name: Update release version
       run: |
-        $NuGetPackageId = {NUGET_PACKAGE_ID}
+        $NuGetPackageId = ${NUGET_PACKAGE_ID}
         .\Utils\DefineBranch.ps1
       shell: powershell
 
