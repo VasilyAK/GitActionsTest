@@ -1,8 +1,24 @@
-﻿([string] $NuGetPackageId)
+﻿[string] $BranchHead = $Env:GITHUB_REF
+[string] $NuGetPackageId = $Env:NUGET_PACKAGE_ID
 
-[string] $BranchHead = $Env:GITHUB_REF
+[string] $MainBranch = "main"
 [string] $ReleaseBranch = "release"
 [string] $NewReleasePostfix = "-new"
+
+function Get-Git-BranchDir
+{
+    param ([string] $GitBranchHead)
+    
+    [string] $GitBranchFullName = $GitBranchHead.Replace("refs/heads/", "").Trim()
+    [string[]] $GitBranchDirs = $GitBranchFullName.Split("/")
+    if ($GitBranchDirs[0] -eq $MainBranch)
+    {
+        Return ""
+    }
+
+    Return $GitBranchDirs[0]
+}
+
 
 function Get-Git-BranchName
 {
@@ -10,22 +26,9 @@ function Get-Git-BranchName
     
     [string] $GitBranchFullName = $GitBranchHead.Replace("refs/heads/", "").Trim()
     [string[]] $GitBranchDirs = $GitBranchFullName.Split("/")
-    [string] $GitBranchName = $GitBranchDirs[0]
+    [string] $GitBranchName = $GitBranchDirs[($GitBranchDirs.Length - 1)]
 
     Return $GitBranchName
-}
-
-function Get-ReleaseVersion
-{
-    param ([string] $GitBranchName)
-
-    [string] $ReleaseVersion = "0.0"
-
-    if ($GitBranchName.StartsWith("$ReleaseBranch")) {
-        $ReleaseVersion = $GitBranchName.Replace("$ReleaseBranch-", "")
-    }
-
-    Return $ReleaseVersion
 }
 
 function Get-LatestNuGetPackageVersion
@@ -44,6 +47,7 @@ function Get-LatestNuGetPackageVersion
 
         if ($Response.StatusCode -eq 200)
         {
+            Write-Host "A response was received from the 'nuget.org' site to request a package '$PackageId'"
             [PSCustomObject] $PesponseContent = $Response.Content | ConvertFrom-Json
             [string[]]$NuGetReleaseVersions = $PesponseContent.PSObject.Properties["versions"].Value
             $NuGetReleaseVersions = $NuGetReleaseVersions.Where({$_.StartsWith($ReleaseVersion)}) | Sort-Object -Descending
@@ -51,7 +55,7 @@ function Get-LatestNuGetPackageVersion
                $LatestNuGetReleaseVersion = $NuGetReleaseVersions[0]
             }
         } else {
-            Write-Host "No response received from the $URL."
+            Write-Host "No response received the 'nuget.org' site to request a package '$PackageId'"
             Write-Host "Status code: ${Response.StatusCode}"
         }
     }
@@ -60,11 +64,12 @@ function Get-LatestNuGetPackageVersion
         [string] $WebErrorMessage = $_.ToString()
         if ($WebErrorMessage.Contains("BlobNotFound"))
         {
+            Write-Warning "A response 'BlobNotFound' was received from the 'nuget.org' site to request a package '$PackageId'"
             $LatestNuGetReleaseVersion = "$ReleaseVersion.0$NewReleasePostfix"
         }
         else
         {
-            Write-Warning "Error while response receiving from the $URL."
+            Write-Warning "Error while response receiving from the 'nuget.org' site to request a package '$PackageId'"
             Write-Warning $WebErrorMessage
         }
     }
@@ -108,10 +113,11 @@ function Get-NewFixVersion
 }
 
 Write-Host "Start parse branch head: $BranchHead"
+[string] $BranchDir = Get-Git-BranchDir -GitBranchHead $BranchHead
 [string] $BranchName = Get-Git-BranchName -GitBranchHead $BranchHead
 
-if ($BranchName.StartsWith("$ReleaseBranch")) {
-    [string] $ReleaseVersion = Get-ReleaseVersion -GitBranchName $BranchName
+if ($BranchDir -eq "$ReleaseBranch") {
+    [string] $ReleaseVersion = $BranchName
     [string] $LatestNuGetPackageVersion = Get-LatestNuGetPackageVersion -PackageId $NuGetPackageId -ReleaseVersion $ReleaseVersion
     [int] $NewFixVersion = Get-NewFixVersion -LatestNuGetPackageVersion $LatestNuGetPackageVersion
     [string] $NewReleaseVersion = "$ReleaseVersion.$NewFixVersion"

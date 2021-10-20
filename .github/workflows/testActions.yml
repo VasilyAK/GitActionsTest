@@ -1,6 +1,6 @@
 name: Flow-CI
 
-on: [push, pull_request]
+on: push
 
 env:
   BRANCH_NAME: noBranch
@@ -10,14 +10,14 @@ env:
 jobs:
   Build_Flow:
     name: Build Flow
-    runs-on: windows-latest 
+    runs-on: windows-latest
 
     steps:
     - name: Clone repo
       uses: actions/checkout@v2
 
     - name: Update release version
-      run: .\Utils\DefineBranch.ps1 -NuGetPackageId env.NUGET_PACKAGE_ID
+      run: .\Utils\DefineBranch.ps1
       shell: powershell
 
     - name: Setup .NET
@@ -37,14 +37,13 @@ jobs:
       run: dotnet build "NuGetTestPackage/NuGetTestPackage.sln" --no-restore
 
     - name: Test
-      if: ${{ env.BRANCH_NAME == 'release' }}
       run: dotnet test "NuGetTestPackage/NuGetTestPackage.sln" --no-build --verbosity normal
-      
-    - name: Pack      
-      if: ${{ env.BRANCH_NAME == 'release' && env.RELEASE_VERSION != '0.0.0' }}
-      run: dotnet pack --configuration Release /p:Version=${RELEASE_VERSION} --no-build --output 
 
-    - name: Push      
+    - name: Pack
+      if: ${{ env.BRANCH_NAME == 'release' && env.RELEASE_VERSION != '0.0.0' }}
+      run: dotnet pack --configuration Release /p:Version=${RELEASE_VERSION} --no-build --output
+
+    - name: Push
       if: ${{ env.BRANCH_NAME == 'release' && env.RELEASE_VERSION != '0.0.0' }}
       run: dotnet nuget push NuGet.Workflow.${RELEASE_VERSION}.nupkg --source https://www.nuget.org/ --api-key ${NU_GET_ENV}
       env:
